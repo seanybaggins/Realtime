@@ -1,6 +1,10 @@
-use scheduler;
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;    
+use scheduler;    
+
+const SCHED_OTHER: i32 = 0;
+const SCHED_FIFO: i32 = 1;
+const SCHED_RR: i32 = 2;
+const SCHED_BATCH: i32 = 3;
+const SCHED_IDLE: i32 = 5;
 
 
 #[derive(Debug)]
@@ -44,23 +48,12 @@ pub fn print_scheduler() {
 
         print!("\tSchedule Policy: ");
 
-        match FromPrimitive::from_i32(process_schedule_policy) {
-            Some(SchedulePolicy::Other) => println!("Other"),
-            Some(SchedulePolicy::FirstInFirstOut) => println!("First in first out"),
-            Some(SchedulePolicy::RoundRobin) => println!("Round robin"),
-            Some(SchedulePolicy::Batch) => println!("Batch"),
-            Some(SchedulePolicy::Idle) => println!("Idle"),
-            None => println!("Issue comparing primitive type on enum when printing process")
+        match process_schedule_policy {
+            SCHED_OTHER => println!("Other"),
+            SCHED_FIFO => print!("First in first out"),
+            SCHED_RR => println!("Round Robin"),
+            SCHED_BATCH => println!("Batch"),
+            SCHED_IDLE => println!("Idle"),
+            _ => println!("Policy unknown")
         }
-}
-
-
-
-#[derive(FromPrimitive)]
-enum SchedulePolicy {
-    Other = 0,
-    FirstInFirstOut = 1,
-    RoundRobin = 2,
-    Batch = 3,
-    Idle = 4
 }
