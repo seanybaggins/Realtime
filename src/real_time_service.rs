@@ -1,7 +1,5 @@
-use scheduler;
-use std::thread;
 
-pub const MAX_PRIORITY: i32 = 99;
+use std::thread;
 
 #[derive(Debug)]
 pub struct Task {
@@ -32,21 +30,8 @@ impl Task {
 
         return [task1, task2, task3]
     }
+
+    
 }
 
-pub fn print_scheduler() {
-    use scheduler::Policy;
-    let process_schedule_policy = scheduler::get_self_policy()
-        .expect("Error in getting the scheduler policy: {:?}");
 
-    print!("\tSchedule Policy: ");
-
-    match process_schedule_policy {
-        Policy::Other => println!("Other"),
-        Policy::Fifo => println!("First in first out"),
-        Policy::RoundRobin => println!("Round Robin"),
-        Policy::Batch => println!("Batch"),
-        Policy::Idle => println!("Idle"),
-        Policy::Deadline => println!("Deadline")
-    }
-}
