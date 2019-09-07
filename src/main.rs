@@ -1,47 +1,44 @@
 mod real_time_service;
 mod fibonacci;
 
-use real_time_service::{Task, scheduler, thread};
+use real_time_service::{Task, scheduler, MAX_PRIORITY};
+use scheduler::{Policy, Which::Process};
+use std::thread;
+use std::sync::Arc;
+//use real_time_service::crossbeam::thread;
 use fibonacci::fibonacci;
-use libc;
-
 
 fn main() {
 
     println!("Defining tasks");
     let tasks = Task::define_tasks();
 
-    println!("Printing scheduler before changes");
-    
+    println!("Setting affinity to single core");
+    let cpu = scheduler::get_self_affinity(real_time_service::ONE_CPU).unwrap();
+    scheduler::set_self_affinity(cpu).expect("unable to set CPU affinity");
 
     println!("Setting the scheduler policy for main thread/sequencer");
+    scheduler::set_self_policy(Policy::Fifo, MAX_PRIORITY)
+        .expect("Unable to change scheduling priority. Did you run with sudo permissions?");
 
     println!("Printing scheduler after changes");
+    real_time_service::print_scheduler();
     
-     /*
+    println!("Setting parameters for the sequencer");
+    let sequencer = real_time_service::Sequencer::define();
+    
     println!("Spawning threads and setting priorities of tasks.");
-    
-    for (task_number, task) in tasks.iter().enumerate() {
-        thread::spawn(move || {
-            scheduler::set_self_priority(scheduler::Which::Process, priority: i32)
+    let mut thread_handles = Vec::with_capacity(tasks.len());
+    for index in 0..tasks.len() {
+        let priority_p = tasks[index].priority.clone();
+        let thread_handle = thread::spawn(move || {
+            scheduler::set_self_priority(Process, *priority_p).unwrap();
         });
+        &thread_handles.push(thread_handle);
     }
     
-    let child = thread::spawn(move || {
-        println!("Setting scheduler policy and priority for {:?}", thread::current().id());
-        real_time_service::print_scheduler();
-        scheduler::set_self_policy(scheduler::Policy::Fifo, real_time_service::MAX_PRIORITY - 1)
-            .expect("failed to set scheduling priority");
-        for _ in 1..10 {
-            println!("Thread ran");
-        } 
-    });
-
-    for _ in 1..10 {
-            println!("Main ran");
+    println!("Joining threads and shutting down");
+    for thread_handle in thread_handles {
+        thread_handle.join().unwrap();
     }
-
-    child.join()
-        .expect("Deadlock possibly detected");
-    */
 }
