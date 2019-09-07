@@ -1,10 +1,9 @@
 mod real_time_service;
 mod fibonacci;
 
-use real_time_service::Task;
-use std::thread;
-use std::time::{Duration, Instant};
+use real_time_service::{Task, scheduler, thread};
 use fibonacci::fibonacci;
+use libc;
 
 
 fn main() {
@@ -31,7 +30,16 @@ fn main() {
     let child = thread::spawn(move || {
         println!("Setting scheduler policy and priority for {:?}", thread::current().id());
         real_time_service::print_scheduler();
+        scheduler::set_self_policy(scheduler::Policy::Fifo, real_time_service::MAX_PRIORITY - 1)
+            .expect("failed to set scheduling priority");
+        for _ in 1..10 {
+            println!("Thread ran");
+        } 
     });
+
+    for _ in 1..10 {
+            println!("Main ran");
+    }
 
     child.join()
         .expect("Deadlock possibly detected");
